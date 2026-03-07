@@ -72,10 +72,7 @@ relationship Reserved {
     status
     ' will be an enum of possible states
     ' requested, cancelled, collected
-    requested_at
-    confirmed_at
-    cancelled_at
-    completed_at
+    status_updated_at
 }
 
 Reserved =(1, N)= food_listing
