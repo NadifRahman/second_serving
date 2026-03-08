@@ -7,6 +7,8 @@ CREATE TABLE user_account (
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(50) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE food_listing (
