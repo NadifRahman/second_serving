@@ -15,3 +15,11 @@ https://postgis.net/documentation/
 
 PostGIS Geometry Types  
 https://postgis.net/docs/using_postgis_dbmanagement.html
+
+## Testing
+
+Spring Testcontainers Documentation
+https://docs.spring.io/spring-boot/reference/testing/testcontainers.html
+
+PostGIS Test Container
+https://testcontainers.com/modules/postgis/
