@@ -17,12 +17,10 @@ public class UserDetailsImpl implements UserDetails {
     // We need to prefix wih "ROLE" for spring's "hasRole("USER") to work
     public static final String ROLE_USER = "ROLE_USER";
 
-    private String username;
-    private String passwordHash;
+    private final User user;
 
     public UserDetailsImpl(User user) {
-        this.username = user.getUsername();
-        this.passwordHash = user.getPasswordHash();
+        this.user = user;
     }
 
     /**
@@ -91,7 +89,7 @@ public class UserDetailsImpl implements UserDetails {
      */
     @Override
     public @Nullable String getPassword() {
-        return this.passwordHash;
+        return this.user.getPasswordHash();
     }
 
     /**
@@ -102,6 +100,15 @@ public class UserDetailsImpl implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return this.username;
+        return this.user.getUsername();
     }
+
+    /**
+     * Returns the underlying {@link User} domain object
+     * @return
+     */
+    public User getUser() {
+        return this.user;
+    }
+
 }
