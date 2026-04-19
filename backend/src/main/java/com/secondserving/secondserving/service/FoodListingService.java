@@ -3,6 +3,7 @@ package com.secondserving.secondserving.service;
 import com.secondserving.secondserving.domain.FoodListing;
 import com.secondserving.secondserving.domain.PickupLocation;
 import com.secondserving.secondserving.domain.User;
+import com.secondserving.secondserving.exception.FoodListingNotFoundException;
 import com.secondserving.secondserving.repository.FoodListingRepository;
 import com.secondserving.secondserving.repository.PickupLocationRepository;
 import jakarta.transaction.Transactional;
@@ -71,7 +72,7 @@ public class FoodListingService {
      * @throws IllegalArgumentException If the listing cannot be found
      */
     public FoodListing updateListing(UUID listingId, UpdateFoodListingCommand command) {
-        FoodListing listing = getListingByIdOrThrow(listingId);
+        FoodListing listing = getFoodListingByIdOrThrow(listingId);
 
         listing.setTitle(command.title());
         listing.setDescription(command.description());
@@ -92,7 +93,7 @@ public class FoodListingService {
      * @throws IllegalArgumentException If the listing cannot be found
      */
     public FoodListing updatePickupLocation(UUID listingId, PickupLocationCommand command) {
-        FoodListing listing = getListingByIdOrThrow(listingId);
+        FoodListing listing = getFoodListingByIdOrThrow(listingId);
         PickupLocation pickupLocation = listing.getPickupLocation();
 
         if (pickupLocation == null) {
@@ -141,18 +142,13 @@ public class FoodListingService {
     }
 
     /**
-     * Finds a food listing by its id.
-     *
-     * @param listingId The id of the listing
-     * @return An {@link Optional} containing the listing when found
+     * Get the food listing JPA object given the ID or throw {@link FoodListingNotFoundException}
+     * @param listingId
+     * @return
      */
-    public Optional<FoodListing> findById(UUID listingId) {
-        return foodListingRepository.findById(listingId);
-    }
-
-    private FoodListing getListingByIdOrThrow(UUID listingId) {
+    public FoodListing getFoodListingByIdOrThrow(UUID listingId) {
         return foodListingRepository.findById(listingId)
-                .orElseThrow(() -> new IllegalArgumentException("Could not find food listing with id " + listingId));
+                .orElseThrow(() -> new FoodListingNotFoundException("Could not find food listing with id " + listingId));
     }
 
     /**
