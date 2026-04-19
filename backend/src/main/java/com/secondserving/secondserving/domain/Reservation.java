@@ -14,6 +14,12 @@ import java.util.UUID;
 @Table(name = "reservation")
 public class Reservation {
 
+
+    /**
+     * The minimum quantity that can be requested by any reservation. Must match database constraint.
+     */
+    public static final int MIN_QUANTITY_REQUESTABLE = 0;
+
     @EmbeddedId
     private ReservationPK reservationId;
 
@@ -30,7 +36,7 @@ public class Reservation {
     private User userRequester;
 
     @Column(name = "quantity_requested", nullable = false)
-    @Min(0)
+    @Min(MIN_QUANTITY_REQUESTABLE)
     private short quantityRequested;
 
     @Enumerated(EnumType.STRING)
@@ -145,7 +151,6 @@ public class Reservation {
         public int hashCode() {
             return Objects.hash(listingId, requesterId);
         }
-
 
     }
 
