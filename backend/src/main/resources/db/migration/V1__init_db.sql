@@ -51,7 +51,7 @@ CREATE TABLE reservation (
     quantity_requested smallint CHECK (quantity_requested >= 0) NOT NULL,
     status VARCHAR(30) NOT NULL, -- we will enforce this as an ENUM in hibernate instead of native postgres enum types
     created_at timestamptz NOT NULL,
-    status_updated_at timestamptz,
+    updated_at timestamptz NOT NULL,
     PRIMARY KEY (listing_id, requester_id)
 );
 
