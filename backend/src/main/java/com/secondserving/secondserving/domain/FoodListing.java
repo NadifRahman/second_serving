@@ -84,24 +84,48 @@ public class FoodListing {
         return title;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public FoodListingStatus getStatus() {
         return status;
     }
 
+    public void setStatus(FoodListingStatus status) {
+        this.status = status;
+    }
+
     public short getQuantity() {
         return quantity;
+    }
+
+    public void setQuantity(short quantity) {
+        this.quantity = quantity;
     }
 
     public QuantityUnit getQuantityUnit() {
         return quantityUnit;
     }
 
+    public void setQuantityUnit(QuantityUnit quantityUnit) {
+        this.quantityUnit = quantityUnit;
+    }
+
     public Instant getExpiresAt() {
         return expiresAt;
+    }
+
+    public void setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
     public Instant getCreatedAt() {
@@ -117,7 +141,19 @@ public class FoodListing {
     }
 
     public void setPickupLocation(PickupLocation pickupLocation) {
+        if (this.pickupLocation == pickupLocation) {
+            // Already set before, nothing more to do
+            return;
+        }
+
+        PickupLocation previousPickupLocation = this.pickupLocation;
         this.pickupLocation = pickupLocation;
+
+        if (previousPickupLocation != null && previousPickupLocation.getFoodListing() == this) {
+            // Set the previous pickup location's foodlisting to null
+            previousPickupLocation.setFoodListing(null);
+        }
+
         if (pickupLocation != null && pickupLocation.getFoodListing() != this) {
             pickupLocation.setFoodListing(this);
         }

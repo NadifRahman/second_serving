@@ -82,16 +82,32 @@ public class PickupLocation {
         return fullAddress;
     }
 
+    public void setFullAddress(String fullAddress) {
+        this.fullAddress = fullAddress;
+    }
+
     public Point getLocationPoint() {
         return locationPoint;
+    }
+
+    public void setLocationPoint(Point locationPoint) {
+        this.locationPoint = locationPoint;
     }
 
     public Instant getPickupStartAt() {
         return pickupStartAt;
     }
 
+    public void setPickupStartAt(Instant pickupStartAt) {
+        this.pickupStartAt = pickupStartAt;
+    }
+
     public Instant getPickupEndAt() {
         return pickupEndAt;
+    }
+
+    public void setPickupEndAt(Instant pickupEndAt) {
+        this.pickupEndAt = pickupEndAt;
     }
 
     public Instant getCreatedAt() {
@@ -106,8 +122,22 @@ public class PickupLocation {
         return instructions;
     }
 
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
+    }
+
     public void setFoodListing(FoodListing foodListing) {
+        if (this.foodListing == foodListing) {
+            return;
+        }
+
+        FoodListing previousFoodListing = this.foodListing;
         this.foodListing = foodListing;
+
+        if (previousFoodListing != null && previousFoodListing.getPickupLocation() == this) {
+            previousFoodListing.setPickupLocation(null);
+        }
+
         if (foodListing != null && foodListing.getPickupLocation() != this) {
             foodListing.setPickupLocation(this);
         }
