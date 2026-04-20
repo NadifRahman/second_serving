@@ -6,8 +6,11 @@ import com.secondserving.secondserving.exception.InvalidReservationQuantityExcep
 import com.secondserving.secondserving.exception.SelfReservationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
 
 /**
  * The global exception handler for controller classes. All the methods will return a single string that can be
@@ -34,5 +37,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SelfReservationException.class)
     public ResponseEntity<String> handleSelfReservation(SelfReservationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    /**
+     * Useful exception handler mainly for giving the user advice on errors on passing in data.
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationFailure(MethodArgumentNotValidException ex) {
+        String errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 }
