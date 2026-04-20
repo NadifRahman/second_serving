@@ -19,6 +19,9 @@ target/
 *.iml
 *.ipr
 
+### codex ###
+.codex
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

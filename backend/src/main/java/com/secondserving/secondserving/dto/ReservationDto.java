@@ -5,7 +5,11 @@ import com.secondserving.secondserving.domain.Reservation;
 import java.time.Instant;
 import java.util.UUID;
 
-public record ReservationDTO(
+/**
+ * DTO class that contains all the details of a particular reservation. Useful when we need to transfer data
+ * of a reservation and we do not already know its related entities.
+ */
+public record ReservationDto(
         UUID listingId,
         UUID requesterId,
         String requesterUsername,
@@ -15,8 +19,8 @@ public record ReservationDTO(
         Instant updatedAt,
         FoodListingDto foodListing
 ) {
-    public static ReservationDTO from(Reservation reservation) {
-        return new ReservationDTO(
+    public static ReservationDto from(Reservation reservation) {
+        return new ReservationDto(
                 reservation.getReservationId().getListingId(),
                 reservation.getReservationId().getRequesterId(),
                 reservation.getUserRequester().getUsername(),

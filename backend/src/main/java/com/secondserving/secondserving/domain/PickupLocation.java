@@ -20,6 +20,11 @@ import java.util.UUID;
 @Table(name = "pickup_location")
 public class PickupLocation {
 
+    /** The maximum character length of a pickup location's address. Must be consistent with DB constraint value. */
+    public static final int FULL_ADDRESS_MAX_LENGTH = 150;
+    /** The maximum character length of a pickup location's address. Must be consistent with DB constraint value. */
+    public static final int INSTRUCTIONS_MAX_LENGTH = 255;
+
     @Id
     @Column(name = "pickup_id", nullable = false)
     private UUID pickupId;
@@ -28,7 +33,7 @@ public class PickupLocation {
     @JoinColumn(name = "listing_id", nullable = false, unique = true)
     private FoodListing foodListing;
 
-    @Column(name = "full_address", nullable = false, length = 150)
+    @Column(name = "full_address", nullable = false, length = FULL_ADDRESS_MAX_LENGTH)
     private String fullAddress;
 
     @JdbcTypeCode(SqlTypes.GEOGRAPHY)
@@ -49,7 +54,7 @@ public class PickupLocation {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @Column(name = "instructions", length = 255)
+    @Column(name = "instructions", length = INSTRUCTIONS_MAX_LENGTH)
     private String instructions;
 
     protected PickupLocation() {

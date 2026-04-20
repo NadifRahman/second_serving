@@ -1,6 +1,7 @@
 package com.secondserving.secondserving.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -11,6 +12,17 @@ import java.util.UUID;
 @Table(name = "food_listing")
 public class FoodListing {
 
+    /** The maximum character length of a food listing's title. Should be consistent with DB constraint. */
+    public static final int TITLE_MAX_LENGTH = 50;
+    /** The maximum character length of a food listing's description. Should be consistent with DB constraint. */
+    public static final int DESCRIPTION_MAX_LENGTH = 255;
+    /** The maximum character length of a food listing's status. Should be consistent with DB constraint. */
+    public static final int STATUS_MAX_LENGTH = 30;
+    /** The maximum character length of a food listing's quantity unit. Should be consistent with DB constraint. */
+    public static final int QUANTITY_UNIT_MAX_LENGTH = 30;
+    /** The minimum amount of quantity (of any unit) a food listing can contain. Should be consistent with DB constraint. */
+    public static final int MIN_QUANTITY = 0;
+
     @Id
     @Column(name = "listing_id", nullable = false)
     private UUID listingId;
@@ -19,22 +31,22 @@ public class FoodListing {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    @Column(name = "title", nullable = false, length = 50)
+    @Column(name = "title", nullable = false, length = TITLE_MAX_LENGTH)
     private String title;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = DESCRIPTION_MAX_LENGTH)
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @Column(name = "status", nullable = false, length = STATUS_MAX_LENGTH)
     private FoodListingStatus status;
 
-    // min size is not guarded here
     @Column(name = "quantity", nullable = false)
+    @Min(MIN_QUANTITY)
     private short quantity;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "quantity_unit", nullable = false, length = 30)
+    @Column(name = "quantity_unit", nullable = false, length = QUANTITY_UNIT_MAX_LENGTH)
     private QuantityUnit quantityUnit;
 
     @Column(name = "expires_at", nullable = false)
