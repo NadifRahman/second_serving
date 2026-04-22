@@ -1,9 +1,6 @@
 package com.secondserving.secondserving.controller;
 
-import com.secondserving.secondserving.exception.DuplicateReservationException;
-import com.secondserving.secondserving.exception.FoodListingNotFoundException;
-import com.secondserving.secondserving.exception.InvalidReservationQuantityException;
-import com.secondserving.secondserving.exception.SelfReservationException;
+import com.secondserving.secondserving.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -37,6 +34,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SelfReservationException.class)
     public ResponseEntity<String> handleSelfReservation(SelfReservationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UpdatingUnownedFoodListingException.class)
+    public ResponseEntity<String> handleUpdatingUnownedFoodListing(UpdatingUnownedFoodListingException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
     /**
