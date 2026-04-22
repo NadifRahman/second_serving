@@ -3,6 +3,7 @@ package com.secondserving.secondserving.service;
 import com.secondserving.secondserving.domain.FoodListing;
 import com.secondserving.secondserving.domain.PickupLocation;
 import com.secondserving.secondserving.domain.User;
+import com.secondserving.secondserving.exception.UpdatingUnownedFoodListingException;
 import com.secondserving.secondserving.repository.FoodListingRepository;
 import com.secondserving.secondserving.repository.PickupLocationRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,26 +95,57 @@ class FoodListingServiceTest {
     @Test
     void updateListing_UpdatesMutableFields() {
         UUID listingId = listing.getListingId();
-        FoodListingService.UpdateFoodListingCommand command = new FoodListingService.UpdateFoodListingCommand(
-                "Bread",
-                "Freshly baked bread",
+        FoodListingService.PatchFoodListingCommand command = new FoodListingService.PatchFoodListingCommand(
                 FoodListing.FoodListingStatus.FINISHED,
                 (short) 1,
-                FoodListing.QuantityUnit.ITEM,
                 Instant.parse("2026-04-20T12:00:00Z")
         );
 
         when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
         when(foodListingRepository.save(listing)).thenReturn(listing);
 
-        FoodListing updated = foodListingService.updateListing(listingId, command);
+        FoodListing updated = foodListingService.patchListingIfOwnedByUserOrThrow(owner, listingId, command);
 
-        assertEquals("Bread", updated.getTitle());
-        assertEquals("Freshly baked bread", updated.getDescription());
         assertEquals(FoodListing.FoodListingStatus.FINISHED, updated.getStatus());
         assertEquals((short) 1, updated.getQuantity());
-        assertEquals(FoodListing.QuantityUnit.ITEM, updated.getQuantityUnit());
         assertEquals(Instant.parse("2026-04-20T12:00:00Z"), updated.getExpiresAt());
+    }
+
+    @Test
+    void patchListingIfOwnedByUserOrThrow_WithOnlyQuantity_LeavesOtherPatchableFieldsUnchanged() {
+        UUID listingId = listing.getListingId();
+        FoodListingService.PatchFoodListingCommand command = new FoodListingService.PatchFoodListingCommand(
+                null,
+                (short) 1,
+                null
+        );
+
+        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(foodListingRepository.save(listing)).thenReturn(listing);
+
+        FoodListing updated = foodListingService.patchListingIfOwnedByUserOrThrow(owner, listingId, command);
+
+        assertEquals(FoodListing.FoodListingStatus.AVAILABLE, updated.getStatus());
+        assertEquals((short) 1, updated.getQuantity());
+        assertEquals(Instant.parse("2026-04-19T12:00:00Z"), updated.getExpiresAt());
+    }
+
+    @Test
+    void patchListingIfOwnedByUserOrThrow_WithDifferentUser_ThrowsUpdatingUnownedFoodListingException() {
+        UUID listingId = listing.getListingId();
+        User otherUser = new User("other", "passwordHash", "Other User", "other@example.com");
+        FoodListingService.PatchFoodListingCommand command = new FoodListingService.PatchFoodListingCommand(
+                FoodListing.FoodListingStatus.FINISHED,
+                null,
+                null
+        );
+
+        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+
+        UpdatingUnownedFoodListingException exception = assertThrows(UpdatingUnownedFoodListingException.class,
+                () -> foodListingService.patchListingIfOwnedByUserOrThrow(otherUser, listingId, command));
+
+        assertEquals("You cannot update a food listing owned by another user.", exception.getMessage());
     }
 
     @Test

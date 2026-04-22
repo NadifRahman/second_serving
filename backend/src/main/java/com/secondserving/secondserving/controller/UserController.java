@@ -1,11 +1,9 @@
 package com.secondserving.secondserving.controller;
 
 import com.secondserving.secondserving.config.security.UserDetailsImpl;
+import com.secondserving.secondserving.domain.FoodListing;
 import com.secondserving.secondserving.domain.User;
-import com.secondserving.secondserving.dto.CreateFoodListingRequestDto;
-import com.secondserving.secondserving.dto.CreateReservationRequestDto;
-import com.secondserving.secondserving.dto.FoodListingDto;
-import com.secondserving.secondserving.dto.ReservationDto;
+import com.secondserving.secondserving.dto.*;
 import com.secondserving.secondserving.service.FoodListingService;
 import com.secondserving.secondserving.service.ReservationService;
 import jakarta.validation.Valid;
@@ -15,13 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 
@@ -58,7 +53,7 @@ public class UserController {
      * @return
      */
     @GetMapping(ME_PATH + FOOD_LISTINGS_PATH)
-    public ResponseEntity<?> getMyFoodListings(@AuthenticationPrincipal UserDetailsImpl userDetail) {
+    public ResponseEntity<List<FoodListingDto>> getMyFoodListings(@AuthenticationPrincipal UserDetailsImpl userDetail) {
         User user = userDetail.getUser();
         List<FoodListingDto> dtos = foodListingService.getFoodListingsOwnedBy(user).stream().map(FoodListingDto::from).toList();
         return ResponseEntity.status(HttpStatus.OK).body(dtos);
@@ -113,6 +108,19 @@ public class UserController {
                 .body(ReservationDto.from(
                         reservationService.createReservation(user, request.listingId(), request.quantityRequested())
                 ));
+    }
+
+    @PatchMapping(ME_PATH + FOOD_LISTINGS_PATH + "/{listingId}")
+    public ResponseEntity<FoodListingDto> updateMyFoodListing(@AuthenticationPrincipal UserDetailsImpl userDetail,
+    @PathVariable UUID listingId, @RequestBody @Valid PatchFoodListingRequestDto request) {
+        User user = userDetail.getUser();
+        FoodListingService.PatchFoodListingCommand command = new FoodListingService.PatchFoodListingCommand(
+                request.status(),
+                request.quantity(),
+                request.expiresAt()
+                );
+        FoodListing listing = foodListingService.patchListingIfOwnedByUserOrThrow(user,  listingId, command);
+        return ResponseEntity.status(HttpStatus.OK).body(FoodListingDto.from(listing));
     }
 
 }

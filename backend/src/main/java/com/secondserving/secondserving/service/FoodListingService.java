@@ -4,6 +4,7 @@ import com.secondserving.secondserving.domain.FoodListing;
 import com.secondserving.secondserving.domain.PickupLocation;
 import com.secondserving.secondserving.domain.User;
 import com.secondserving.secondserving.exception.FoodListingNotFoundException;
+import com.secondserving.secondserving.exception.UpdatingUnownedFoodListingException;
 import com.secondserving.secondserving.repository.FoodListingRepository;
 import com.secondserving.secondserving.repository.PickupLocationRepository;
 import jakarta.transaction.Transactional;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -66,21 +66,31 @@ public class FoodListingService {
     /**
      * Updates the mutable listing fields for an existing food listing.
      *
-     * @param listingId The id of the listing to update
-     * @param command The updated listing field values
+     * @param owner the (proposed) owner of the food listing
+     * @param listingId The id of the listing to update.
+     * @param command The updated listing field values.
      * @return The saved {@link FoodListing}
-     * @throws IllegalArgumentException If the listing cannot be found
+     * @throws FoodListingNotFoundException If the listing cannot be found
+     * @throws UpdatingUnownedFoodListingException If the passed in user does not own the listingId
      */
-    public FoodListing updateListing(UUID listingId, UpdateFoodListingCommand command) {
+    public FoodListing patchListingIfOwnedByUserOrThrow(User owner, UUID listingId, PatchFoodListingCommand command) {
+
         FoodListing listing = getFoodListingByIdOrThrow(listingId);
 
-        listing.setTitle(command.title());
-        listing.setDescription(command.description());
-        listing.setStatus(command.status());
-        listing.setQuantity(command.quantity());
-        listing.setQuantityUnit(command.quantityUnit());
-        listing.setExpiresAt(command.expiresAt());
+        if (!listing.getOwner().getUserId().equals(owner.getUserId())) {
+            throw new UpdatingUnownedFoodListingException("You cannot update a food listing owned by another user.");
+        }
 
+        // Patch fields if they are not null
+        if (command.status() != null) {
+            listing.setStatus(command.status());
+        }
+        if (command.quantity() != null) {
+            listing.setQuantity(command.quantity());
+        }
+        if (command.expiresAt() != null) {
+            listing.setExpiresAt(command.expiresAt());
+        }
         return foodListingRepository.save(listing);
     }
 
@@ -143,8 +153,9 @@ public class FoodListingService {
 
     /**
      * Get the food listing JPA object given the ID or throw {@link FoodListingNotFoundException}
-     * @param listingId
-     * @return
+     * @param listingId the ID of the food listing
+     * @throws FoodListingNotFoundException if food listing not found
+     * @return the food listing
      */
     public FoodListing getFoodListingByIdOrThrow(UUID listingId) {
         return foodListingRepository.findById(listingId)
@@ -164,14 +175,12 @@ public class FoodListingService {
     }
 
     /**
-     * Input data for updating the mutable fields of an existing {@link FoodListing}.
+     * Input data for patching the mutable fields of an existing {@link FoodListing}.
+     * Fields should be set to null if they should not be applied to the patch
      */
-    public record UpdateFoodListingCommand(String title,
-                                           String description,
-                                           FoodListing.FoodListingStatus status,
-                                           short quantity,
-                                           FoodListing.QuantityUnit quantityUnit,
-                                           Instant expiresAt) {
+    public record PatchFoodListingCommand(FoodListing.FoodListingStatus status,
+                                          Short quantity,
+                                          Instant expiresAt) {
     }
 
     /**

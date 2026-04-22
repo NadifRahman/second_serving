@@ -7,6 +7,21 @@ import org.locationtech.jts.geom.Point;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * DTO object that contains the details of a particular food listing + its pickup location
+ * @param listingId
+ * @param ownerId
+ * @param ownerUsername
+ * @param title
+ * @param description
+ * @param status
+ * @param quantity
+ * @param quantityUnit
+ * @param expiresAt
+ * @param createdAt
+ * @param updatedAt
+ * @param pickupLocation
+ */
 public record FoodListingDto(
         UUID listingId,
         UUID ownerId,
