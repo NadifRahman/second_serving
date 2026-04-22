@@ -110,6 +110,21 @@ public class UserController {
                 ));
     }
 
+    @PatchMapping(ME_PATH + RESERVATIONS_PATH + "/{listingId}")
+    public ResponseEntity<ReservationDto> updateMyReservation(@AuthenticationPrincipal UserDetailsImpl userDetail,
+                                                              @PathVariable UUID listingId,
+                                                              @RequestBody @Valid PatchReservationDto request) {
+        User user = userDetail.getUser();
+        ReservationService.PatchReservationCommand command = new ReservationService.PatchReservationCommand(
+                request.reservationStatus(),
+                request.quantityRequested()
+        );
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ReservationDto.from(
+                        reservationService.patchReservationRequestedByUserOrThrow(user, listingId, command)
+                ));
+    }
+
     @PatchMapping(ME_PATH + FOOD_LISTINGS_PATH + "/{listingId}")
     public ResponseEntity<FoodListingDto> updateMyFoodListing(@AuthenticationPrincipal UserDetailsImpl userDetail,
     @PathVariable UUID listingId, @RequestBody @Valid PatchFoodListingRequestDto request) {

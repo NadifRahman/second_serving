@@ -6,6 +6,7 @@ import com.secondserving.secondserving.domain.User;
 import com.secondserving.secondserving.exception.DuplicateReservationException;
 import com.secondserving.secondserving.exception.FoodListingNotFoundException;
 import com.secondserving.secondserving.exception.InvalidReservationQuantityException;
+import com.secondserving.secondserving.exception.ReservationNotFoundException;
 import com.secondserving.secondserving.exception.SelfReservationException;
 import com.secondserving.secondserving.repository.ReservationRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -129,6 +131,81 @@ class ReservationServiceTest {
                 () -> reservationService.createReservation(requester, listingId, (short) 2));
 
         assertEquals("Reservation already exists for this user and listing", exception.getMessage());
+    }
+
+    @Test
+    void patchReservationRequestedByUserOrThrow_UpdatesMutableFields() {
+        UUID listingId = listing.getListingId();
+        ReservationService.PatchReservationCommand command = new ReservationService.PatchReservationCommand(
+                Reservation.ReservationStatus.COLLECTED,
+                (short) 1
+        );
+        Reservation.ReservationPK reservationId = new Reservation.ReservationPK(listingId, requester.getUserId());
+
+        when(foodListingService.getFoodListingByIdOrThrow(listingId)).thenReturn(listing);
+        when(reservationRepository.findDetailedByReservationId(reservationId)).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(reservation)).thenReturn(reservation);
+
+        Reservation updated = reservationService.patchReservationRequestedByUserOrThrow(requester, listingId, command);
+
+        assertEquals(Reservation.ReservationStatus.COLLECTED, updated.getReservationStatus());
+        assertEquals((short) 1, updated.getQuantityRequested());
+    }
+
+    @Test
+    void patchReservationRequestedByUserOrThrow_WithOnlyStatus_LeavesQuantityUnchanged() {
+        UUID listingId = listing.getListingId();
+        ReservationService.PatchReservationCommand command = new ReservationService.PatchReservationCommand(
+                Reservation.ReservationStatus.CANCELLED,
+                null
+        );
+        Reservation.ReservationPK reservationId = new Reservation.ReservationPK(listingId, requester.getUserId());
+
+        when(foodListingService.getFoodListingByIdOrThrow(listingId)).thenReturn(listing);
+        when(reservationRepository.findDetailedByReservationId(reservationId)).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(reservation)).thenReturn(reservation);
+
+        Reservation updated = reservationService.patchReservationRequestedByUserOrThrow(requester, listingId, command);
+
+        assertEquals(Reservation.ReservationStatus.CANCELLED, updated.getReservationStatus());
+        assertEquals((short) 2, updated.getQuantityRequested());
+    }
+
+    @Test
+    void patchReservationRequestedByUserOrThrow_ThrowsWhenReservationDoesNotExist() {
+        UUID listingId = listing.getListingId();
+        ReservationService.PatchReservationCommand command = new ReservationService.PatchReservationCommand(
+                Reservation.ReservationStatus.COLLECTED,
+                null
+        );
+        Reservation.ReservationPK reservationId = new Reservation.ReservationPK(listingId, requester.getUserId());
+
+        when(foodListingService.getFoodListingByIdOrThrow(listingId)).thenReturn(listing);
+        when(reservationRepository.findDetailedByReservationId(reservationId)).thenReturn(Optional.empty());
+
+        ReservationNotFoundException exception = assertThrows(ReservationNotFoundException.class,
+                () -> reservationService.patchReservationRequestedByUserOrThrow(requester, listingId, command));
+
+        assertEquals("Could not find reservation for listing " + listingId + " requested by user " + requester.getUserId(),
+                exception.getMessage());
+    }
+
+    @Test
+    void patchReservationRequestedByUserOrThrow_ThrowsWhenQuantityRequestedIsAboveAvailableQuantity() {
+        UUID listingId = listing.getListingId();
+        ReservationService.PatchReservationCommand command = new ReservationService.PatchReservationCommand(
+                null,
+                (short) 5
+        );
+        Reservation.ReservationPK reservationId = new Reservation.ReservationPK(listingId, requester.getUserId());
+
+        when(foodListingService.getFoodListingByIdOrThrow(listingId)).thenReturn(listing);
+        when(reservationRepository.findDetailedByReservationId(reservationId)).thenReturn(Optional.of(reservation));
+
+        InvalidReservationQuantityException exception = assertThrows(InvalidReservationQuantityException.class,
+                () -> reservationService.patchReservationRequestedByUserOrThrow(requester, listingId, command));
+
+        assertEquals("Quantity requested is above available quantity " + listing.getQuantity(), exception.getMessage());
     }
 
     @Test
