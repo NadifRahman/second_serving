@@ -10,6 +10,7 @@ import com.secondserving.secondserving.dto.CreateFoodListingRequestDto;
 import com.secondserving.secondserving.dto.CreateReservationRequestDto;
 import com.secondserving.secondserving.dto.FoodListingDto;
 import com.secondserving.secondserving.dto.PatchFoodListingRequestDto;
+import com.secondserving.secondserving.dto.PatchReservationDto;
 import com.secondserving.secondserving.dto.ReservationDto;
 import com.secondserving.secondserving.exception.UpdatingUnownedFoodListingException;
 import com.secondserving.secondserving.service.FoodListingService;
@@ -233,6 +234,55 @@ class UserControllerTest {
     }
 
     /**
+     * Verifies that patching a reservation returns the patched DTO and forwards the
+     * authenticated requester, listing id, and patch command to the service layer.
+     */
+    @Test
+    void updateMyReservation_returnsOkReservationDtoAndMapsPatchCommand() {
+        StubFoodListingService foodListingService = new StubFoodListingService();
+        StubReservationService reservationService = new StubReservationService();
+        UserController underTest = new UserController(
+                reservationService,
+                foodListingService,
+                new GeometryConfig().geometryFactory()
+        );
+        User owner = new User("owner", "passwordHash", "Owner Name", "owner@example.com");
+        User requester = new User("requester", "passwordHash", "Requester Name", "requester@example.com");
+        FoodListing listing = new FoodListing(
+                owner,
+                "Soup",
+                "Fresh soup",
+                FoodListing.FoodListingStatus.AVAILABLE,
+                (short) 4,
+                FoodListing.QuantityUnit.PORTION,
+                Instant.parse("2026-05-01T12:00:00Z")
+        );
+        Reservation patchedReservation = new Reservation(
+                listing,
+                requester,
+                (short) 1,
+                Reservation.ReservationStatus.COLLECTED
+        );
+        reservationService.patchedReservationToReturn = patchedReservation;
+        PatchReservationDto request = new PatchReservationDto(
+                Reservation.ReservationStatus.COLLECTED,
+                (short) 1
+        );
+
+        ResponseEntity<ReservationDto> response =
+                underTest.updateMyReservation(new UserDetailsImpl(requester), listing.getListingId(), request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(listing.getListingId(), response.getBody().listingId());
+        assertSame(requester, reservationService.requesterPassedToPatch);
+        assertEquals(listing.getListingId(), reservationService.listingIdPassedToPatch);
+        assertNotNull(reservationService.commandPassedToPatch);
+        assertEquals(Reservation.ReservationStatus.COLLECTED, reservationService.commandPassedToPatch.reservationStatus());
+        assertEquals((short) 1, reservationService.commandPassedToPatch.quantityRequested());
+    }
+
+    /**
      * Verifies that patching a food listing returns the patched DTO and forwards only the
      * patchable fields to the service command.
      */
@@ -355,6 +405,39 @@ class UserControllerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.allOf(
                         org.hamcrest.Matchers.containsString("quantity: must be greater than or equal to 0"),
                         org.hamcrest.Matchers.containsString("expiresAt: must be a future date")
+                )));
+    }
+
+    /**
+     * Verifies that an invalid reservation patch payload is rejected before reaching the
+     * service layer.
+     */
+    @Test
+    void updateMyReservation_withInvalidRequest_returnsBadRequestSingleStringMessage() throws Exception {
+        UserController underTest = new UserController(
+                new StubReservationService(),
+                new StubFoodListingService(),
+                new GeometryConfig().geometryFactory()
+        );
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(underTest)
+                .setCustomArgumentResolvers(authenticationPrincipalResolver())
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+
+        String invalidBody = """
+                {
+                  "reservationStatus": "COLLECTED",
+                  "quantityRequested": -1
+                }
+                """;
+
+        mockMvc.perform(patch("/users/me/reservations/{listingId}", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .principal(() -> "requester")
+                        .content(invalidBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "quantityRequested: must be greater than or equal to 0"
                 )));
     }
 
@@ -487,10 +570,14 @@ class UserControllerTest {
     private static class StubReservationService extends ReservationService {
         private List<Reservation> reservationsToReturn = List.of();
         private Reservation createdReservationToReturn;
+        private Reservation patchedReservationToReturn;
         private User requesterPassedToGetReservations;
         private User requesterPassedToCreate;
+        private User requesterPassedToPatch;
         private UUID listingIdPassedToCreate;
+        private UUID listingIdPassedToPatch;
         private short quantityPassedToCreate;
+        private PatchReservationCommand commandPassedToPatch;
 
         StubReservationService() {
             super(null, null);
@@ -515,6 +602,18 @@ class UserControllerTest {
             listingIdPassedToCreate = listingId;
             quantityPassedToCreate = quantityRequested;
             return createdReservationToReturn;
+        }
+
+        /**
+         * Records reservation-patch inputs passed by the controller and returns the configured
+         * patched reservation.
+         */
+        @Override
+        public Reservation patchReservationRequestedByUserOrThrow(User requester, UUID listingId, PatchReservationCommand command) {
+            requesterPassedToPatch = requester;
+            listingIdPassedToPatch = listingId;
+            commandPassedToPatch = command;
+            return patchedReservationToReturn;
         }
     }
 

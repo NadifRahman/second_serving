@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Reservation.ReservationPK> {
 
@@ -47,5 +48,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Reserv
      */
     @EntityGraph(attributePaths = {"foodListing", "userRequester"})
     List<Reservation> findDetailedByUserRequester(User userRequester);
+
+    /**
+     * Finds a reservation by its composite id and eagerly loads the entities needed for DTO conversion.
+     *
+     * @param reservationId the reservation composite id
+     * @return the reservation with related entities loaded, if it exists
+     */
+    @EntityGraph(attributePaths = {"foodListing", "foodListing.owner", "foodListing.pickupLocation", "userRequester"})
+    Optional<Reservation> findDetailedByReservationId(Reservation.ReservationPK reservationId);
 
 }
