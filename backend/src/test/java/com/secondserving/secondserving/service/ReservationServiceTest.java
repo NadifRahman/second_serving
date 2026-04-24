@@ -209,6 +209,35 @@ class ReservationServiceTest {
     }
 
     @Test
+    void deleteReservationRequestedByUserOrThrow_WithRequester_DeletesReservation() {
+        UUID listingId = listing.getListingId();
+        Reservation.ReservationPK reservationId = new Reservation.ReservationPK(listingId, requester.getUserId());
+
+        when(reservationRepository.findDetailedByReservationId(reservationId)).thenReturn(Optional.of(reservation));
+
+        reservationService.deleteReservationRequestedByUserOrThrow(requester, listingId);
+
+        verify(reservationRepository).delete(reservation);
+    }
+
+    @Test
+    void deleteReservationRequestedByUserOrThrow_WhenRequesterHasNoReservation_ThrowsReservationNotFoundExceptionWithDeleteContext() {
+        UUID listingId = listing.getListingId();
+        User otherRequester = new User("other", "passwordHash", "Other User", "other@example.com");
+        Reservation.ReservationPK reservationId = new Reservation.ReservationPK(listingId, otherRequester.getUserId());
+
+        when(reservationRepository.findDetailedByReservationId(reservationId)).thenReturn(Optional.empty());
+
+        ReservationNotFoundException exception = assertThrows(ReservationNotFoundException.class,
+                () -> reservationService.deleteReservationRequestedByUserOrThrow(otherRequester, listingId));
+
+        assertEquals("Could not find reservation for listing " + listingId
+                        + " requested by user " + otherRequester.getUserId()
+                        + ". It may have been deleted already.",
+                exception.getMessage());
+    }
+
+    @Test
     void getReservationsRequestedBy_UsesDetailedRepositoryQuery() {
         when(reservationRepository.findDetailedByUserRequester(requester)).thenReturn(List.of(reservation));
 

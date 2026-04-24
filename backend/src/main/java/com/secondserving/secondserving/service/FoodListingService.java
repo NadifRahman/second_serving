@@ -77,7 +77,7 @@ public class FoodListingService {
 
         FoodListing listing = getFoodListingByIdOrThrow(listingId);
 
-        if (!listing.getOwner().getUserId().equals(owner.getUserId())) {
+        if (!listing.isOwnedBy(owner)) {
             throw new UpdatingUnownedFoodListingException("You cannot update a food listing owned by another user.");
         }
 
@@ -160,6 +160,28 @@ public class FoodListingService {
     public FoodListing getFoodListingByIdOrThrow(UUID listingId) {
         return foodListingRepository.findById(listingId)
                 .orElseThrow(() -> new FoodListingNotFoundException("Could not find food listing with id " + listingId));
+    }
+
+    /**
+     * Service method to delete a {@link FoodListing} only if the passed in {@link User} owns the listing.
+     *
+     * Note that the cascading of deletes that depend on this {@link FoodListing} is assumed to be done
+     * at the database level. 
+     * @param user The authenticated user
+     * @param listingId
+     */
+    public void deleteFoodListingIfOwnedOrThrow(User user, UUID listingId) {
+        try {
+            FoodListing foodListing = getFoodListingByIdOrThrow(listingId);
+            if (!foodListing.isOwnedBy(user)) {
+                throw new UpdatingUnownedFoodListingException("You cannot delete a food listing owned by another user.");
+            } else {
+                foodListingRepository.delete(foodListing);
+            }
+        } catch (FoodListingNotFoundException e) {
+            // In case client tries sending multiple request to delete, send a useful failure message that we may have already done it
+            throw new FoodListingNotFoundException("Could not find food listing with id " + listingId + ". It may have been deleted already.");
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ package com.secondserving.secondserving.service;
 import com.secondserving.secondserving.domain.FoodListing;
 import com.secondserving.secondserving.domain.PickupLocation;
 import com.secondserving.secondserving.domain.User;
+import com.secondserving.secondserving.exception.FoodListingNotFoundException;
 import com.secondserving.secondserving.exception.UpdatingUnownedFoodListingException;
 import com.secondserving.secondserving.repository.FoodListingRepository;
 import com.secondserving.secondserving.repository.PickupLocationRepository;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -146,6 +148,45 @@ class FoodListingServiceTest {
                 () -> foodListingService.patchListingIfOwnedByUserOrThrow(otherUser, listingId, command));
 
         assertEquals("You cannot update a food listing owned by another user.", exception.getMessage());
+    }
+
+    @Test
+    void deleteFoodListingIfOwnedOrThrow_WithOwner_DeletesListing() {
+        UUID listingId = listing.getListingId();
+
+        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+
+        foodListingService.deleteFoodListingIfOwnedOrThrow(owner, listingId);
+
+        verify(foodListingRepository).delete(listing);
+    }
+
+    @Test
+    void deleteFoodListingIfOwnedOrThrow_WithDifferentUser_ThrowsUpdatingUnownedFoodListingException() {
+        UUID listingId = listing.getListingId();
+        User otherUser = new User("other", "passwordHash", "Other User", "other@example.com");
+
+        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+
+        UpdatingUnownedFoodListingException exception = assertThrows(UpdatingUnownedFoodListingException.class,
+                () -> foodListingService.deleteFoodListingIfOwnedOrThrow(otherUser, listingId));
+
+        assertEquals("You cannot delete a food listing owned by another user.", exception.getMessage());
+        verify(foodListingRepository, never()).delete(any(FoodListing.class));
+    }
+
+    @Test
+    void deleteFoodListingIfOwnedOrThrow_WhenListingDoesNotExist_ThrowsFoodListingNotFoundExceptionWithDeleteContext() {
+        UUID listingId = UUID.randomUUID();
+
+        when(foodListingRepository.findById(listingId)).thenReturn(Optional.empty());
+
+        FoodListingNotFoundException exception = assertThrows(FoodListingNotFoundException.class,
+                () -> foodListingService.deleteFoodListingIfOwnedOrThrow(owner, listingId));
+
+        assertEquals("Could not find food listing with id " + listingId + ". It may have been deleted already.",
+                exception.getMessage());
+        verify(foodListingRepository, never()).delete(any(FoodListing.class));
     }
 
     @Test
