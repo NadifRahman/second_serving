@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -90,6 +91,10 @@ public class FoodListing {
 
     public User getOwner() {
         return owner;
+    }
+
+    public boolean isOwnedBy(User user) {
+        return user != null && Objects.equals(owner.getUserId(), user.getUserId());
     }
 
     public String getTitle() {

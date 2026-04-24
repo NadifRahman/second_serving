@@ -99,6 +99,7 @@ public class UserController {
                 .body(FoodListingDto.from(foodListingService.createListing(user, command)));
     }
 
+    // TODO add java doc
     @PostMapping(ME_PATH + RESERVATIONS_PATH)
     public ResponseEntity<ReservationDto> createMyReservation(@AuthenticationPrincipal UserDetailsImpl userDetail,
                                                               @Valid @RequestBody CreateReservationRequestDto request) {
@@ -110,6 +111,7 @@ public class UserController {
                 ));
     }
 
+    // TODO add java doc
     @PatchMapping(ME_PATH + RESERVATIONS_PATH + "/{listingId}")
     public ResponseEntity<ReservationDto> updateMyReservation(@AuthenticationPrincipal UserDetailsImpl userDetail,
                                                               @PathVariable UUID listingId,
@@ -125,6 +127,7 @@ public class UserController {
                 ));
     }
 
+    // TODO add java doc
     @PatchMapping(ME_PATH + FOOD_LISTINGS_PATH + "/{listingId}")
     public ResponseEntity<FoodListingDto> updateMyFoodListing(@AuthenticationPrincipal UserDetailsImpl userDetail,
     @PathVariable UUID listingId, @RequestBody @Valid PatchFoodListingRequestDto request) {
@@ -136,6 +139,19 @@ public class UserController {
                 );
         FoodListing listing = foodListingService.patchListingIfOwnedByUserOrThrow(user,  listingId, command);
         return ResponseEntity.status(HttpStatus.OK).body(FoodListingDto.from(listing));
+    }
+
+    /**
+     * Method for handling requests to delete a food listing owned by the authenticated user
+     * @param userDetail the authenticated user object
+     * @param listingId the ID of the {@link FoodListing}, expected to come from the URI path
+     * @return
+     */
+    @DeleteMapping(ME_PATH + FOOD_LISTINGS_PATH + "/{listingId}")
+    public ResponseEntity<Void> deleteMyFoodListing(@AuthenticationPrincipal UserDetailsImpl userDetail, @PathVariable UUID listingId) {
+        User authenticatedUser = userDetail.getUser();
+        foodListingService.deleteFoodListingIfOwnedOrThrow(authenticatedUser, listingId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }

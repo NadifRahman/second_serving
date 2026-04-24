@@ -116,7 +116,7 @@ public class ReservationService {
     }
 
     private void validateReservationRequest(User requester, FoodListing foodListing, short quantityRequested) {
-        if (foodListing.getOwner().getUserId().equals(requester.getUserId())) {
+        if (foodListing.isOwnedBy(requester)) {
             throw new SelfReservationException("Users cannot reserve their own food listing");
         }
 
