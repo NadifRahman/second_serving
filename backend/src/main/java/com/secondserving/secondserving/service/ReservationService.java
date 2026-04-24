@@ -88,6 +88,26 @@ public class ReservationService {
     }
 
     /**
+     * Deletes an existing reservation requested by the given user.
+     *
+     * @param requester the authenticated user who requested the reservation
+     * @param listingId the reserved food listing id
+     * @throws ReservationNotFoundException if the authenticated user has no reservation for the listing
+     */
+    public void deleteReservationRequestedByUserOrThrow(User requester, UUID listingId) {
+        try {
+            Reservation reservation = getReservationRequestedByUserOrThrow(requester, listingId);
+            reservationRepository.delete(reservation);
+        } catch (ReservationNotFoundException e) {
+            throw new ReservationNotFoundException(
+                    "Could not find reservation for listing " + listingId
+                            + " requested by user " + requester.getUserId()
+                            + ". It may have been deleted already."
+            );
+        }
+    }
+
+    /**
      * Fetches reservations requested by a given user with related entities loaded.
      *
      * @param requester The requesting user

@@ -127,6 +127,20 @@ public class UserController {
                 ));
     }
 
+    /**
+     * Method for handling requests to delete a reservation requested by the authenticated user.
+     * @param userDetail the authenticated user object
+     * @param listingId the ID of the reserved {@link FoodListing}, expected to come from the URI path
+     * @return
+     */
+    @DeleteMapping(ME_PATH + RESERVATIONS_PATH + "/{listingId}")
+    public ResponseEntity<Void> deleteMyReservation(@AuthenticationPrincipal UserDetailsImpl userDetail,
+                                                    @PathVariable UUID listingId) {
+        User authenticatedUser = userDetail.getUser();
+        reservationService.deleteReservationRequestedByUserOrThrow(authenticatedUser, listingId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     // TODO add java doc
     @PatchMapping(ME_PATH + FOOD_LISTINGS_PATH + "/{listingId}")
     public ResponseEntity<FoodListingDto> updateMyFoodListing(@AuthenticationPrincipal UserDetailsImpl userDetail,
