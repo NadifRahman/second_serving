@@ -23,7 +23,7 @@ import java.util.UUID;
 @RequestMapping(UserController.USER_BASE_PATH)
 public class UserController {
 
-    public static final String USER_BASE_PATH = "/users";
+    public static final String USER_BASE_PATH = ApiPaths.API_BASE_PATH + "/users";
     public static final String ME_PATH = "/me";
     public static final String FOOD_LISTINGS_PATH = "/food-listings";
     public static final String RESERVATIONS_PATH = "/reservations";

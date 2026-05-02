@@ -1,6 +1,7 @@
 package com.secondserving.secondserving.config.security;
 
 import com.secondserving.secondserving.controller.UserController;
+import com.secondserving.secondserving.controller.AuthController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,8 +30,8 @@ public class SecurityConfig {
         http
                 // Route authorization config
                 .authorizeHttpRequests((request) -> request
-                .requestMatchers("/login").permitAll()
-                .requestMatchers("/signup").permitAll()
+                .requestMatchers(AuthController.AUTH_BASE_PATH + AuthController.LOGIN_PATH).permitAll()
+                .requestMatchers(AuthController.AUTH_BASE_PATH + AuthController.SIGNUP_PATH).permitAll()
                 .requestMatchers(UserController.USER_BASE_PATH + "/**").hasAuthority(ROLE_USER)
                 .anyRequest().authenticated())
 
