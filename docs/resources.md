@@ -2,6 +2,27 @@
 
 Useful documentation and references for technologies used in this project.
 
+## Frontend
+
+Vite (the frontend build tool)
+https://vite.dev/guide/
+
+Tanstack Query (server state management library)
+https://tanstack.com/query/latest/docs/framework/react/overview
+
+Zustand (Client state management library)
+https://zustand.docs.pmnd.rs/learn/getting-started/introduction
+
+MapLibre 
+https://maplibre.org/maplibre-gl-js/docs/
+https://visgl.github.io/react-map-gl/docs/api-reference/maplibre/map (react wrapper for MapLibre)
+
+## Libraries
+
+Hibernate Spatial Reference (used for PostGIS to JTS type mappings)
+https://docs.hibernate.org/orm/5.2/userguide/html_single/#spatial
+
+
 ## Database
 
 PostgreSQL Documentation  

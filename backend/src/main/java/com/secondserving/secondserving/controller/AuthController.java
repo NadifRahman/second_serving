@@ -11,11 +11,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping(AuthController.AUTH_BASE_PATH)
 public class AuthController {
+
+    public static final String AUTH_BASE_PATH = ApiPaths.API_BASE_PATH;
+    public static final String SIGNUP_PATH = "/signup";
+    public static final String LOGIN_PATH = "/login";
 
     private final UserService userService;
     private final JwtUtilsService jwtUtilsService;
@@ -25,7 +31,7 @@ public class AuthController {
         this.jwtUtilsService = jwtUtilsService;
     }
 
-    @PostMapping("/signup")
+    @PostMapping(SIGNUP_PATH)
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto signupRequestDto) {
         try {
             User user = userService.registerUser(
@@ -45,7 +51,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/login")
+    @PostMapping(LOGIN_PATH)
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto) {
         boolean authenticated = userService.authenticateUser(
                 loginRequestDto.username(),

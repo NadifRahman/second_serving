@@ -409,7 +409,7 @@ class UserControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/users/me/food-listings")
+        mockMvc.perform(post("/api/users/me/food-listings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .principal(() -> "owner")
                         .content(invalidBody))
@@ -445,7 +445,7 @@ class UserControllerTest {
                 }
                 """;
 
-        mockMvc.perform(patch("/users/me/food-listings/{listingId}", UUID.randomUUID())
+        mockMvc.perform(patch("/api/users/me/food-listings/{listingId}", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .principal(() -> "owner")
                         .content(invalidBody))
@@ -479,7 +479,7 @@ class UserControllerTest {
                 }
                 """;
 
-        mockMvc.perform(patch("/users/me/reservations/{listingId}", UUID.randomUUID())
+        mockMvc.perform(patch("/api/users/me/reservations/{listingId}", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .principal(() -> "requester")
                         .content(invalidBody))
@@ -513,7 +513,7 @@ class UserControllerTest {
                 }
                 """;
 
-        mockMvc.perform(patch("/users/me/food-listings/{listingId}", UUID.randomUUID())
+        mockMvc.perform(patch("/api/users/me/food-listings/{listingId}", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .principal(() -> "owner")
                         .content(validBody))
@@ -544,7 +544,7 @@ class UserControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/users/me/reservations")
+        mockMvc.perform(post("/api/users/me/reservations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .principal(() -> "requester")
                         .content(invalidBody))
