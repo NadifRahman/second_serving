@@ -66,7 +66,7 @@ public class UserController {
      */
     @GetMapping(ME_PATH + RESERVATIONS_PATH)
     // TODO write unit tests for this
-    public ResponseEntity<?> getMyReservations(@AuthenticationPrincipal UserDetailsImpl userDetail) {
+    public ResponseEntity<List<ReservationDto>> getMyReservations(@AuthenticationPrincipal UserDetailsImpl userDetail) {
         User user = userDetail.getUser();
         List<ReservationDto> dtos = reservationService.getReservationsRequestedBy(user).stream().map(ReservationDto::from).toList();
         return ResponseEntity.status(HttpStatus.OK).body(dtos);

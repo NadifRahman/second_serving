@@ -22,6 +22,8 @@ https://visgl.github.io/react-map-gl/docs/api-reference/maplibre/map (react wrap
 Hibernate Spatial Reference (used for PostGIS to JTS type mappings)
 https://docs.hibernate.org/orm/5.2/userguide/html_single/#spatial
 
+Springdoc (used for auto-generating API documentation)
+https://springdoc.org/#features
 
 ## Database
 

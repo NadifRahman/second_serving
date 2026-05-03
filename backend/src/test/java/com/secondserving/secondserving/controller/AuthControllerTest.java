@@ -9,9 +9,11 @@ import com.secondserving.secondserving.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AuthControllerTest {
 
@@ -24,7 +26,7 @@ class AuthControllerTest {
         userService.userToRegister = user;
         jwtUtilsService.tokenToReturn = "jwt-token";
 
-        ResponseEntity<?> response = underTest.signup(
+        ResponseEntity<AuthResponseDto> response = underTest.signup(
                 new SignupRequestDto("testuser", "password", "Test User", "test@example.com")
         );
 
@@ -41,12 +43,9 @@ class AuthControllerTest {
         AuthController underTest = new AuthController(userService, jwtUtilsService);
         userService.registrationException = new IllegalArgumentException("Username already exists");
 
-        ResponseEntity<?> response = underTest.signup(
-                new SignupRequestDto("testuser", "password", "Test User", "test@example.com")
-        );
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Username already exists", response.getBody());
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                underTest.signup(new SignupRequestDto("testuser", "password", "Test User", "test@example.com")));
+        assertEquals("Username already exists", exception.getMessage());
     }
 
     @Test
@@ -59,7 +58,7 @@ class AuthControllerTest {
         userService.userByUsername = user;
         jwtUtilsService.tokenToReturn = "jwt-token";
 
-        ResponseEntity<?> response = underTest.login(new LoginRequestDto("testuser", "password"));
+        ResponseEntity<AuthResponseDto> response = underTest.login(new LoginRequestDto("testuser", "password"));
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         AuthResponseDto body = assertInstanceOf(AuthResponseDto.class, response.getBody());
@@ -73,10 +72,9 @@ class AuthControllerTest {
         StubJwtUtilsService jwtUtilsService = new StubJwtUtilsService();
         AuthController underTest = new AuthController(userService, jwtUtilsService);
 
-        ResponseEntity<?> response = underTest.login(new LoginRequestDto("testuser", "wrong-password"));
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertEquals("Invalid username or password", response.getBody());
+        BadCredentialsException exception = assertThrows(BadCredentialsException.class, () ->
+                underTest.login(new LoginRequestDto("testuser", "wrong-password")));
+        assertEquals("Invalid username or password", exception.getMessage());
     }
 
     private static class StubUserService extends UserService {

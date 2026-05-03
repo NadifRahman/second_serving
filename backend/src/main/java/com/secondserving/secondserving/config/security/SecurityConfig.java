@@ -30,6 +30,8 @@ public class SecurityConfig {
         http
                 // Route authorization config
                 .authorizeHttpRequests((request) -> request
+                        // TODO: See if we should restrict these endpoints for prod, and only allow for dev.
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(AuthController.AUTH_BASE_PATH + AuthController.LOGIN_PATH).permitAll()
                 .requestMatchers(AuthController.AUTH_BASE_PATH + AuthController.SIGNUP_PATH).permitAll()
                 .requestMatchers(UserController.USER_BASE_PATH + "/**").hasAuthority(ROLE_USER)
