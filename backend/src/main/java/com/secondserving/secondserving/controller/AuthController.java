@@ -9,6 +9,7 @@ import com.secondserving.secondserving.dto.SignupRequestDto;
 import com.secondserving.secondserving.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,34 +33,30 @@ public class AuthController {
     }
 
     @PostMapping(SIGNUP_PATH)
-    public ResponseEntity<?> signup(@RequestBody SignupRequestDto signupRequestDto) {
-        try {
-            User user = userService.registerUser(
-                    signupRequestDto.username(),
-                    signupRequestDto.password(),
-                    signupRequestDto.fullName(),
-                    signupRequestDto.email()
-            );
+    public ResponseEntity<AuthResponseDto> signup(@RequestBody SignupRequestDto signupRequestDto) {
+        User user = userService.registerUser(
+                signupRequestDto.username(),
+                signupRequestDto.password(),
+                signupRequestDto.fullName(),
+                signupRequestDto.email()
+        );
 
-            UserDetails userDetails = new UserDetailsImpl(user);
-            String token = jwtUtilsService.generateToken(userDetails);
+        UserDetails userDetails = new UserDetailsImpl(user);
+        String token = jwtUtilsService.generateToken(userDetails);
 
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new AuthResponseDto(token, user.getUsername()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new AuthResponseDto(token, user.getUsername()));
     }
 
     @PostMapping(LOGIN_PATH)
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
         boolean authenticated = userService.authenticateUser(
                 loginRequestDto.username(),
                 loginRequestDto.password()
         );
 
         if (!authenticated) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            throw new BadCredentialsException("Invalid username or password");
         }
 
         User user = userService.getUserByUsername(loginRequestDto.username());
