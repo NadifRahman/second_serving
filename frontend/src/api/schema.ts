@@ -52,6 +52,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/login": {
         parameters: {
             query?: never;
@@ -107,7 +123,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getUser"];
+        get: operations["getCurrentUser"];
         put?: never;
         post?: never;
         delete?: never;
@@ -209,9 +225,17 @@ export interface components {
             fullName?: string;
             email?: string;
         };
-        AuthResponseDto: {
-            token?: string;
+        AuthSessionDto: {
+            user?: components["schemas"]["CurrentUserDto"];
+            /** Format: date-time */
+            expiresAt?: string;
+        };
+        CurrentUserDto: {
+            /** Format: uuid */
+            userId?: string;
             username?: string;
+            fullName?: string;
+            email?: string;
         };
         LoginRequestDto: {
             username?: string;
@@ -527,8 +551,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["AuthResponseDto"];
+                    "*/*": components["schemas"]["AuthSessionDto"];
                 };
+            };
+            /** @description Bad request or validation failure. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad request or validation failure. */
             400: {
@@ -560,7 +611,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["AuthResponseDto"];
+                    "*/*": components["schemas"]["AuthSessionDto"];
                 };
             };
             /** @description Bad request or validation failure. */
@@ -855,7 +906,7 @@ export interface operations {
             };
         };
     };
-    getUser: {
+    getCurrentUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -870,7 +921,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": string;
+                    "*/*": components["schemas"]["CurrentUserDto"];
                 };
             };
             /** @description Bad request or validation failure. */

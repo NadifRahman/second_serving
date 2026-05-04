@@ -11,7 +11,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,11 +39,18 @@ public class UserController {
         this.geometryFactory = geometryFactory;
     }
 
+    /**
+     * Returns the safe profile for the currently authenticated user.
+     * <p>
+     * Frontend auth state should be rebuilt from this endpoint after page loads or
+     * after login/signup mutations complete.
+     *
+     * @param userDetail the authenticated Spring Security principal
+     * @return the current user's client-safe profile
+     */
     @GetMapping(ME_PATH)
-    // TODO just a test endpoint...delete later
-    public ResponseEntity<String> getUser(Authentication authentication) {
-        authentication.getName();
-        return ResponseEntity.status(HttpStatus.OK).body(authentication.getName());
+    public ResponseEntity<CurrentUserDto> getCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetail) {
+        return ResponseEntity.status(HttpStatus.OK).body(CurrentUserDto.from(userDetail.getUser()));
     }
 
     /**
