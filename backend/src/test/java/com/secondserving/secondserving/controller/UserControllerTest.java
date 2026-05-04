@@ -8,6 +8,7 @@ import com.secondserving.secondserving.domain.Reservation;
 import com.secondserving.secondserving.domain.User;
 import com.secondserving.secondserving.dto.CreateFoodListingRequestDto;
 import com.secondserving.secondserving.dto.CreateReservationRequestDto;
+import com.secondserving.secondserving.dto.CurrentUserDto;
 import com.secondserving.secondserving.dto.FoodListingDto;
 import com.secondserving.secondserving.dto.PatchFoodListingRequestDto;
 import com.secondserving.secondserving.dto.PatchReservationDto;
@@ -51,6 +52,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * request-to-command mapping and validation/error handling behavior.
  */
 class UserControllerTest {
+
+    @Test
+    void getCurrentUser_returnsAuthenticatedUserDto() {
+        UserController underTest = new UserController(
+                new StubReservationService(),
+                new StubFoodListingService(),
+                new GeometryConfig().geometryFactory()
+        );
+        User user = new User("owner", "passwordHash", "Owner Name", "owner@example.com");
+
+        ResponseEntity<CurrentUserDto> response = underTest.getCurrentUser(new UserDetailsImpl(user));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        CurrentUserDto body = assertInstanceOf(CurrentUserDto.class, response.getBody());
+        assertEquals(user.getUserId(), body.userId());
+        assertEquals("owner", body.username());
+        assertEquals("Owner Name", body.fullName());
+        assertEquals("owner@example.com", body.email());
+    }
 
     /**
      * Verifies that the controller returns the authenticated user's food listings as DTOs.
