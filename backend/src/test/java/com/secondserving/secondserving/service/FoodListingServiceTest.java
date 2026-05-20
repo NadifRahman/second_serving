@@ -103,7 +103,7 @@ class FoodListingServiceTest {
                 Instant.parse("2026-04-20T12:00:00Z")
         );
 
-        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.of(listing));
         when(foodListingRepository.save(listing)).thenReturn(listing);
 
         FoodListing updated = foodListingService.patchListingIfOwnedByUserOrThrow(owner, listingId, command);
@@ -122,7 +122,7 @@ class FoodListingServiceTest {
                 null
         );
 
-        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.of(listing));
         when(foodListingRepository.save(listing)).thenReturn(listing);
 
         FoodListing updated = foodListingService.patchListingIfOwnedByUserOrThrow(owner, listingId, command);
@@ -142,7 +142,7 @@ class FoodListingServiceTest {
                 null
         );
 
-        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.of(listing));
 
         UpdatingUnownedFoodListingException exception = assertThrows(UpdatingUnownedFoodListingException.class,
                 () -> foodListingService.patchListingIfOwnedByUserOrThrow(otherUser, listingId, command));
@@ -154,7 +154,7 @@ class FoodListingServiceTest {
     void deleteFoodListingIfOwnedOrThrow_WithOwner_DeletesListing() {
         UUID listingId = listing.getListingId();
 
-        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.of(listing));
 
         foodListingService.deleteFoodListingIfOwnedOrThrow(owner, listingId);
 
@@ -166,7 +166,7 @@ class FoodListingServiceTest {
         UUID listingId = listing.getListingId();
         User otherUser = new User("other", "passwordHash", "Other User", "other@example.com");
 
-        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.of(listing));
 
         UpdatingUnownedFoodListingException exception = assertThrows(UpdatingUnownedFoodListingException.class,
                 () -> foodListingService.deleteFoodListingIfOwnedOrThrow(otherUser, listingId));
@@ -179,7 +179,7 @@ class FoodListingServiceTest {
     void deleteFoodListingIfOwnedOrThrow_WhenListingDoesNotExist_ThrowsFoodListingNotFoundExceptionWithDeleteContext() {
         UUID listingId = UUID.randomUUID();
 
-        when(foodListingRepository.findById(listingId)).thenReturn(Optional.empty());
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.empty());
 
         FoodListingNotFoundException exception = assertThrows(FoodListingNotFoundException.class,
                 () -> foodListingService.deleteFoodListingIfOwnedOrThrow(owner, listingId));
@@ -200,7 +200,7 @@ class FoodListingServiceTest {
                 "Side entrance"
         );
 
-        when(foodListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.of(listing));
         when(foodListingRepository.save(listing)).thenReturn(listing);
 
         FoodListing updated = foodListingService.updatePickupLocation(listingId, command);

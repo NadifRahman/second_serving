@@ -65,6 +65,19 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(dtos);
     }
 
+    @GetMapping(ME_PATH + FOOD_LISTINGS_PATH + "/{listingId}" + RESERVATIONS_PATH)
+    public ResponseEntity<List<ReservationDto>> getMyFoodListingReservations(
+            @AuthenticationPrincipal UserDetailsImpl userDetail,
+            @PathVariable UUID listingId) {
+        User user = userDetail.getUser();
+        List<ReservationDto> dtos = reservationService
+                .getReservationsForFoodListingOwnedByUserOrThrow(user, listingId)
+                .stream()
+                .map(ReservationDto::from)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK).body(dtos);
+    }
+
     /**
      * Method for handling requests to get all reservations by the authenticated user.
      * @param userDetail the principal authenticated object
