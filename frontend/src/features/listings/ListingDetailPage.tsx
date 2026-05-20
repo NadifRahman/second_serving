@@ -31,6 +31,7 @@ import {
   reservationFormSchema,
   type ReservationFormValues,
 } from './schemas'
+import { getListingStatusStyle } from './statusStyles'
 
 /**
  * Public listing detail page with owner and requester actions.
@@ -66,6 +67,7 @@ export function ListingDetailPage() {
 
   const pickup = listing.data.pickupLocation
   const canReserve = Boolean(user) && !isOwner && Boolean(listingId)
+  const statusStyle = getListingStatusStyle(listing.data.status)
 
   const handleReserve = async (values: ReservationFormValues) => {
     if (!listingId) {
@@ -88,7 +90,9 @@ export function ListingDetailPage() {
         <Stack gap={4}>
           <Group gap="xs">
             <Title order={1}>{listing.data.title}</Title>
-            {listing.data.status ? <Badge>{listing.data.status}</Badge> : null}
+            {listing.data.status ? (
+              <Badge color={statusStyle.badgeColor}>{listing.data.status}</Badge>
+            ) : null}
           </Group>
           <Text c="dimmed">Posted by {listing.data.ownerUsername}</Text>
         </Stack>

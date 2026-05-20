@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import type { FoodListing } from '../../../api/types'
 import { routes } from '../../../config/routes'
 import { formatDateTime } from '../../../shared/utils/format'
+import { getListingStatusStyle } from '../statusStyles'
 
 type ListingCardProps = {
   listing: FoodListing
@@ -14,6 +15,8 @@ type ListingCardProps = {
  * Compact listing summary used by map results and owner lists.
  */
 export function ListingCard({ listing, action }: ListingCardProps) {
+  const statusStyle = getListingStatusStyle(listing.status)
+
   return (
     <Paper withBorder p="md" radius="sm">
       <Stack gap="xs">
@@ -21,7 +24,11 @@ export function ListingCard({ listing, action }: ListingCardProps) {
           <Title order={3} size="h4">
             {listing.title}
           </Title>
-          {listing.status ? <Badge variant="light">{listing.status}</Badge> : null}
+          {listing.status ? (
+            <Badge color={statusStyle.badgeColor} variant="light">
+              {listing.status}
+            </Badge>
+          ) : null}
         </Group>
         <Text c="dimmed" lineClamp={2} size="sm">
           {listing.description || 'No description provided.'}

@@ -24,6 +24,32 @@ export function formatMeters(value: number) {
 }
 
 /**
+ * Calculates approximate distance between two coordinates in meters.
+ */
+export function distanceInMeters(
+  first: { latitude: number; longitude: number },
+  second: { latitude: number; longitude: number },
+) {
+  const earthRadiusMeters = 6_371_000
+  const firstLatitude = (first.latitude * Math.PI) / 180
+  const secondLatitude = (second.latitude * Math.PI) / 180
+  const latitudeDelta = ((second.latitude - first.latitude) * Math.PI) / 180
+  const longitudeDelta = ((second.longitude - first.longitude) * Math.PI) / 180
+
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(firstLatitude) *
+      Math.cos(secondLatitude) *
+      Math.sin(longitudeDelta / 2) ** 2
+
+  return (
+    2 *
+    earthRadiusMeters *
+    Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+  )
+}
+
+/**
  * Converts an ISO instant into the value shape expected by `datetime-local`.
  */
 export function inputDateTimeFromIso(value: string | undefined) {
