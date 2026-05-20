@@ -8,6 +8,7 @@ import com.secondserving.secondserving.exception.FoodListingNotFoundException;
 import com.secondserving.secondserving.exception.InvalidReservationQuantityException;
 import com.secondserving.secondserving.exception.ReservationNotFoundException;
 import com.secondserving.secondserving.exception.SelfReservationException;
+import com.secondserving.secondserving.exception.UpdatingUnownedFoodListingException;
 import com.secondserving.secondserving.repository.ReservationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -257,5 +258,32 @@ class ReservationServiceTest {
         assertEquals(1, result.size());
         assertSame(reservation, result.get(0));
         verify(reservationRepository).findDetailedByFoodListing(listing);
+    }
+
+    @Test
+    void getReservationsForFoodListingOwnedByUserOrThrow_WithOwner_ReturnsReservations() {
+        UUID listingId = listing.getListingId();
+
+        when(foodListingService.getFoodListingByIdOrThrow(listingId)).thenReturn(listing);
+        when(reservationRepository.findDetailedByFoodListing(listing)).thenReturn(List.of(reservation));
+
+        List<Reservation> result = reservationService.getReservationsForFoodListingOwnedByUserOrThrow(owner, listingId);
+
+        assertEquals(1, result.size());
+        assertSame(reservation, result.get(0));
+        verify(reservationRepository).findDetailedByFoodListing(listing);
+    }
+
+    @Test
+    void getReservationsForFoodListingOwnedByUserOrThrow_WithDifferentUser_ThrowsUpdatingUnownedFoodListingException() {
+        UUID listingId = listing.getListingId();
+        User otherUser = new User("other", "passwordHash", "Other User", "other@example.com");
+
+        when(foodListingService.getFoodListingByIdOrThrow(listingId)).thenReturn(listing);
+
+        UpdatingUnownedFoodListingException exception = assertThrows(UpdatingUnownedFoodListingException.class,
+                () -> reservationService.getReservationsForFoodListingOwnedByUserOrThrow(otherUser, listingId));
+
+        assertEquals("You cannot view reservations for a food listing owned by another user.", exception.getMessage());
     }
 }

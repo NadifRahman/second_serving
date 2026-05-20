@@ -127,6 +127,26 @@ public class ReservationService {
         return reservationRepository.findDetailedByFoodListing(foodListing);
     }
 
+    /**
+     * Fetches reservations for a listing owned by the given user.
+     *
+     * @param owner the authenticated listing owner
+     * @param listingId the listing whose reservations should be returned
+     * @return reservations for the owned listing
+     * @throws FoodListingNotFoundException if the listing cannot be found
+     * @throws UpdatingUnownedFoodListingException if the listing is owned by another user
+     */
+    public List<Reservation> getReservationsForFoodListingOwnedByUserOrThrow(User owner, UUID listingId) {
+        FoodListing foodListing = foodListingService.getFoodListingByIdOrThrow(listingId);
+        if (!foodListing.isOwnedBy(owner)) {
+            throw new UpdatingUnownedFoodListingException(
+                    "You cannot view reservations for a food listing owned by another user."
+            );
+        }
+
+        return getReservationsForFoodListing(foodListing);
+    }
+
     private Reservation getReservationRequestedByUserOrThrow(User requester, UUID listingId) {
         Reservation.ReservationPK reservationId = new Reservation.ReservationPK(listingId, requester.getUserId());
         return reservationRepository.findDetailedByReservationId(reservationId)

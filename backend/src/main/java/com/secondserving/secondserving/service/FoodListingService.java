@@ -158,7 +158,7 @@ public class FoodListingService {
      * @return the food listing
      */
     public FoodListing getFoodListingByIdOrThrow(UUID listingId) {
-        return foodListingRepository.findById(listingId)
+        return foodListingRepository.findDetailedByListingId(listingId)
                 .orElseThrow(() -> new FoodListingNotFoundException("Could not find food listing with id " + listingId));
     }
 
