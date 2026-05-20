@@ -22,6 +22,9 @@ target/
 ### codex ###
 .codex
 
+### Environment ###
+.env.prod
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
