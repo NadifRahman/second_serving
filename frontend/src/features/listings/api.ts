@@ -5,6 +5,7 @@ import type {
   PatchFoodListingRequest,
   Reservation,
 } from '../../api/types'
+import { apiPaths } from '../../config/apiPaths'
 
 export type NearbyListingsParams = {
   latitude: number
@@ -19,22 +20,24 @@ export function getNearbyListings(params: NearbyListingsParams, signal?: AbortSi
     radiusMeters: String(params.radiusMeters),
   })
 
-  return apiRequest<FoodListing[]>(`/api/food-listings/nearby?${searchParams}`, {
+  return apiRequest<FoodListing[]>(`${apiPaths.foodListings.nearby}?${searchParams}`, {
     signal,
   })
 }
 
 export function getListing(listingId: string, signal?: AbortSignal) {
-  return apiRequest<FoodListing>(`/api/food-listings/${listingId}`, { signal })
+  return apiRequest<FoodListing>(apiPaths.foodListings.detail(listingId), {
+    signal,
+  })
 }
 
 export function getMyListings(signal?: AbortSignal) {
-  return apiRequest<FoodListing[]>('/api/users/me/food-listings', { signal })
+  return apiRequest<FoodListing[]>(apiPaths.users.myFoodListings, { signal })
 }
 
 export function createListing(request: CreateFoodListingRequest) {
   return apiRequest<FoodListing, CreateFoodListingRequest>(
-    '/api/users/me/food-listings',
+    apiPaths.users.myFoodListings,
     {
       method: 'POST',
       body: request,
@@ -44,7 +47,7 @@ export function createListing(request: CreateFoodListingRequest) {
 
 export function updateListing(listingId: string, request: PatchFoodListingRequest) {
   return apiRequest<FoodListing, PatchFoodListingRequest>(
-    `/api/users/me/food-listings/${listingId}`,
+    apiPaths.users.myFoodListing(listingId),
     {
       method: 'PATCH',
       body: request,
@@ -53,14 +56,14 @@ export function updateListing(listingId: string, request: PatchFoodListingReques
 }
 
 export function deleteListing(listingId: string) {
-  return apiRequest<void>(`/api/users/me/food-listings/${listingId}`, {
+  return apiRequest<void>(apiPaths.users.myFoodListing(listingId), {
     method: 'DELETE',
   })
 }
 
 export function getListingReservations(listingId: string, signal?: AbortSignal) {
   return apiRequest<Reservation[]>(
-    `/api/users/me/food-listings/${listingId}/reservations`,
+    apiPaths.users.myFoodListingReservations(listingId),
     { signal },
   )
 }

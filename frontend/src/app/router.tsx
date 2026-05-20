@@ -6,6 +6,7 @@ import { ListingFormPage } from '../features/listings/ListingFormPage'
 import { ListingsMapPage } from '../features/listings/ListingsMapPage'
 import { MyListingsPage } from '../features/listings/MyListingsPage'
 import { MyReservationsPage } from '../features/reservations/MyReservationsPage'
+import { routes } from '../config/routes'
 import { AppLayout } from '../shared/components/AppLayout'
 import { NotFoundPage } from '../shared/components/NotFoundPage'
 import { ProtectedRoute } from '../shared/components/ProtectedRoute'
@@ -21,20 +22,20 @@ export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
-      { path: '/', element: <ListingsMapPage /> },
-      { path: '/sign-in', element: <SignInPage /> },
-      { path: '/sign-up', element: <SignUpPage /> },
-      { path: '/listings/:listingId', element: <ListingDetailPage /> },
+      { path: routes.home, element: <ListingsMapPage /> },
+      { path: routes.signIn, element: <SignInPage /> },
+      { path: routes.signUp, element: <SignUpPage /> },
+      { path: routes.listingDetail(':listingId'), element: <ListingDetailPage /> },
       {
         element: <ProtectedRoute />,
         children: [
-          { path: '/listings/new', element: <ListingFormPage mode="create" /> },
+          { path: routes.newListing, element: <ListingFormPage mode="create" /> },
           {
-            path: '/listings/:listingId/edit',
+            path: routes.editListing(':listingId'),
             element: <ListingFormPage mode="edit" />,
           },
-          { path: '/me/listings', element: <MyListingsPage /> },
-          { path: '/me/reservations', element: <MyReservationsPage /> },
+          { path: routes.myListings, element: <MyListingsPage /> },
+          { path: routes.myReservations, element: <MyReservationsPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

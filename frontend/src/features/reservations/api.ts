@@ -4,14 +4,15 @@ import type {
   PatchReservationRequest,
   Reservation,
 } from '../../api/types'
+import { apiPaths } from '../../config/apiPaths'
 
 export function getMyReservations(signal?: AbortSignal) {
-  return apiRequest<Reservation[]>('/api/users/me/reservations', { signal })
+  return apiRequest<Reservation[]>(apiPaths.users.myReservations, { signal })
 }
 
 export function createReservation(request: CreateReservationRequest) {
   return apiRequest<Reservation, CreateReservationRequest>(
-    '/api/users/me/reservations',
+    apiPaths.users.myReservations,
     {
       method: 'POST',
       body: request,
@@ -24,7 +25,7 @@ export function updateReservation(
   request: PatchReservationRequest,
 ) {
   return apiRequest<Reservation, PatchReservationRequest>(
-    `/api/users/me/reservations/${listingId}`,
+    apiPaths.users.myReservation(listingId),
     {
       method: 'PATCH',
       body: request,
@@ -33,7 +34,7 @@ export function updateReservation(
 }
 
 export function deleteReservation(listingId: string) {
-  return apiRequest<void>(`/api/users/me/reservations/${listingId}`, {
+  return apiRequest<void>(apiPaths.users.myReservation(listingId), {
     method: 'DELETE',
   })
 }
