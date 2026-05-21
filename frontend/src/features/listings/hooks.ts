@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../../api/queryKeys'
-import type { CreateFoodListingRequest, PatchFoodListingRequest } from '../../api/types'
+import type {
+  CreateFoodListingRequest,
+  FoodListing,
+  PatchFoodListingRequest,
+} from '../../api/types'
 import { useLocationStore } from '../../stores/locationStore'
 import {
   createListing,
@@ -67,7 +71,7 @@ export function useListingMutations() {
     create: useMutation({
       mutationFn: createListing,
       onSuccess: async () => {
-        await queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
+        await queryClient.invalidateQueries({ queryKey: queryKeys.listingsRoot })
       },
     }),
     update: useMutation({
@@ -79,18 +83,34 @@ export function useListingMutations() {
         request: PatchFoodListingRequest
       }) => updateListing(listingId, request),
       onSuccess: async (listing) => {
-        await queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
         if (listing.listingId) {
-          await queryClient.invalidateQueries({
-            queryKey: queryKeys.listing(listing.listingId),
-          })
+          queryClient.setQueryData(queryKeys.listing(listing.listingId), listing)
         }
+        await queryClient.invalidateQueries({ queryKey: queryKeys.listingsRoot })
       },
     }),
     remove: useMutation({
       mutationFn: deleteListing,
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
+      onSuccess: async (_deleted, listingId) => {
+        queryClient.setQueryData<FoodListing[]>(
+          queryKeys.myListings,
+          (listings) =>
+            listings?.filter((listing) => listing.listingId !== listingId) ?? [],
+        )
+        queryClient.removeQueries({ queryKey: queryKeys.listing(listingId) })
+        queryClient
+          .getQueriesData<FoodListing[]>({ queryKey: queryKeys.listingsRoot })
+          .forEach(([queryKey, listings]) => {
+            if (!listings) {
+              return
+            }
+
+            queryClient.setQueryData(
+              queryKey,
+              listings.filter((listing) => listing.listingId !== listingId),
+            )
+          })
+        await queryClient.invalidateQueries({ queryKey: queryKeys.listingsRoot })
       },
     }),
   }

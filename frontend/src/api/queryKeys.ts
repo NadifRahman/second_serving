@@ -6,11 +6,19 @@
  */
 export const queryKeys = {
   currentUser: ['current-user'] as const,
-  listing: (listingId: string) => ['listing', listingId] as const,
+  listingsRoot: ['listings'] as const,
+  listing: (listingId: string) =>
+    [...queryKeys.listingsRoot, 'detail', listingId] as const,
   nearbyListings: (latitude: number, longitude: number, radiusMeters: number) =>
-    ['listings', 'nearby', latitude, longitude, radiusMeters] as const,
-  myListings: ['my-listings'] as const,
+    [
+      ...queryKeys.listingsRoot,
+      'nearby',
+      latitude,
+      longitude,
+      radiusMeters,
+    ] as const,
+  myListings: [...queryKeys.listingsRoot, 'mine'] as const,
   myReservations: ['my-reservations'] as const,
   listingReservations: (listingId: string) =>
-    ['listing-reservations', listingId] as const,
+    [...queryKeys.listingsRoot, 'reservations', listingId] as const,
 }

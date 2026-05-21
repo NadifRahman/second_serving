@@ -6,6 +6,7 @@ import {
   Grid,
   Group,
   Loader,
+  List,
   NumberInput,
   Paper,
   Stack,
@@ -133,6 +134,14 @@ export function ListingDetailPage() {
                   {listing.data.quantity} {listing.data.quantityUnit?.toLowerCase()}{' '}
                   available
                 </Text>
+                <List spacing="xs" size="sm">
+                  <List.Item>
+                    <Text c="dimmed" component="span">
+                      Address:
+                    </Text>{' '}
+                    {pickup?.fullAddress || 'Address not provided'}
+                  </List.Item>
+                </List>
                 <Text c="dimmed">Expires {formatDateTime(listing.data.expiresAt)}</Text>
                 <Text c="dimmed">Pickup starts {formatDateTime(pickup?.pickupStartAt)}</Text>
                 <Text c="dimmed">Pickup ends {formatDateTime(pickup?.pickupEndAt)}</Text>
