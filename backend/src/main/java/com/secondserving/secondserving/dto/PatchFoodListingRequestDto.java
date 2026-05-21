@@ -18,7 +18,6 @@ public record PatchFoodListingRequestDto(
         @Min(FoodListing.MIN_QUANTITY)
         Short quantity,
 
-        @Future
         Instant expiresAt
 ) {
 }

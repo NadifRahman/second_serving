@@ -133,6 +133,47 @@ class FoodListingServiceTest {
     }
 
     @Test
+    void patchListingIfOwnedByUserOrThrow_WithUnchangedPastExpiresAt_AllowsPatch() {
+        UUID listingId = listing.getListingId();
+        Instant historicalExpiresAt = Instant.parse("2024-04-19T12:00:00Z");
+        listing.setExpiresAt(historicalExpiresAt);
+        FoodListingService.PatchFoodListingCommand command = new FoodListingService.PatchFoodListingCommand(
+                FoodListing.FoodListingStatus.FINISHED,
+                (short) 1,
+                historicalExpiresAt
+        );
+
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.of(listing));
+        when(foodListingRepository.save(listing)).thenReturn(listing);
+
+        FoodListing updated = foodListingService.patchListingIfOwnedByUserOrThrow(owner, listingId, command);
+
+        assertEquals(FoodListing.FoodListingStatus.FINISHED, updated.getStatus());
+        assertEquals((short) 1, updated.getQuantity());
+        assertEquals(historicalExpiresAt, updated.getExpiresAt());
+    }
+
+    @Test
+    void patchListingIfOwnedByUserOrThrow_WithChangedPastExpiresAt_ThrowsIllegalArgumentException() {
+        UUID listingId = listing.getListingId();
+        listing.setExpiresAt(Instant.parse("2026-04-19T12:00:00Z"));
+        Instant changedPastExpiresAt = Instant.parse("2024-04-19T12:00:00Z");
+        FoodListingService.PatchFoodListingCommand command = new FoodListingService.PatchFoodListingCommand(
+                null,
+                null,
+                changedPastExpiresAt
+        );
+
+        when(foodListingRepository.findDetailedByListingId(listingId)).thenReturn(Optional.of(listing));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> foodListingService.patchListingIfOwnedByUserOrThrow(owner, listingId, command));
+
+        assertEquals("expiresAt must be a future date when changed.", exception.getMessage());
+        verify(foodListingRepository, never()).save(any(FoodListing.class));
+    }
+
+    @Test
     void patchListingIfOwnedByUserOrThrow_WithDifferentUser_ThrowsUpdatingUnownedFoodListingException() {
         UUID listingId = listing.getListingId();
         User otherUser = new User("other", "passwordHash", "Other User", "other@example.com");

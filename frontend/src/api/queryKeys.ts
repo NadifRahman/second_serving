@@ -1,24 +1,30 @@
-/**
- * Stable TanStack Query keys.
- *
- * Keeping keys centralized prevents typo-driven cache misses and makes
- * mutation invalidation obvious when a feature changes server state.
- */
+const listingsRoot = ['listings'] as const
+
 export const queryKeys = {
   currentUser: ['current-user'] as const,
-  listingsRoot: ['listings'] as const,
+
+  listingsRoot,
+
   listing: (listingId: string) =>
-    [...queryKeys.listingsRoot, 'detail', listingId] as const,
-  nearbyListings: (latitude: number, longitude: number, radiusMeters: number) =>
+    [...listingsRoot, 'detail', listingId] as const,
+
+  nearbyListings: (
+    latitude: number,
+    longitude: number,
+    radiusMeters: number,
+  ) =>
     [
-      ...queryKeys.listingsRoot,
+      ...listingsRoot,
       'nearby',
       latitude,
       longitude,
       radiusMeters,
     ] as const,
-  myListings: [...queryKeys.listingsRoot, 'mine'] as const,
+
+  myListings: [...listingsRoot, 'mine'] as const,
+
   myReservations: ['my-reservations'] as const,
+
   listingReservations: (listingId: string) =>
-    [...queryKeys.listingsRoot, 'reservations', listingId] as const,
+    [...listingsRoot, 'reservations', listingId] as const,
 }

@@ -486,7 +486,7 @@ class UserControllerTest {
 
     /**
      * Verifies that an invalid food-listing patch payload is rejected before reaching the
-     * service layer.
+     * service layer for DTO-level constraints.
      */
     @Test
     void updateMyFoodListing_withInvalidRequest_returnsBadRequestSingleStringMessage() throws Exception {
@@ -503,8 +503,7 @@ class UserControllerTest {
         String invalidBody = """
                 {
                   "status": "FINISHED",
-                  "quantity": -1,
-                  "expiresAt": "2025-01-01T12:00:00Z"
+                  "quantity": -1
                 }
                 """;
 
@@ -514,8 +513,7 @@ class UserControllerTest {
                         .content(invalidBody))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(org.hamcrest.Matchers.allOf(
-                        org.hamcrest.Matchers.containsString("quantity: must be greater than or equal to 0"),
-                        org.hamcrest.Matchers.containsString("expiresAt: must be a future date")
+                        org.hamcrest.Matchers.containsString("quantity: must be greater than or equal to 0")
                 )));
     }
 
