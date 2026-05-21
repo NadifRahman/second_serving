@@ -14,6 +14,7 @@ import {
   Title,
 } from '@mantine/core'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../../api/client'
@@ -38,6 +39,9 @@ import { getListingStatusStyle } from './statusStyles'
  */
 export function ListingDetailPage() {
   const { listingId } = useParams()
+  const [reservationCreatedMessage, setReservationCreatedMessage] = useState<
+    string | null
+  >(null)
   const user = useAuthStore((state) => state.user)
   const listing = useListing(listingId)
   const listingMutations = useListingMutations()
@@ -75,11 +79,16 @@ export function ListingDetailPage() {
     }
 
     try {
-      await reservationMutations.create.mutateAsync({
+      const reservation = await reservationMutations.create.mutateAsync({
         listingId,
         quantityRequested: values.quantityRequested,
       })
+      setReservationCreatedMessage(
+        `Reservation created for ${reservation.quantityRequested} ${listing.data.quantityUnit?.toLowerCase() ?? 'item'}.`,
+      )
+      form.reset({ quantityRequested: 1 })
     } catch {
+      setReservationCreatedMessage(null)
       // Mutation state renders the backend's string error above the form.
     }
   }
@@ -138,6 +147,9 @@ export function ListingDetailPage() {
                     <Title order={2}>Reserve</Title>
                     {reservationMutations.create.isError ? (
                       <Alert color="red">{reservationErrorMessage}</Alert>
+                    ) : null}
+                    {reservationCreatedMessage ? (
+                      <Alert color="green">{reservationCreatedMessage}</Alert>
                     ) : null}
                     <Controller
                       control={form.control}
