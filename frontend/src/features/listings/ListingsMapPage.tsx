@@ -69,6 +69,10 @@ export function ListingsMapPage() {
     radiusIndexFromMeters(radiusMeters),
   )
   const [radiusFitVersion, setRadiusFitVersion] = useState(0)
+  const [isLocatingUser, setIsLocatingUser] = useState(false)
+  const [locationErrorMessage, setLocationErrorMessage] = useState<string | null>(
+    null,
+  )
   const [statusFilter, setStatusFilter] = useState<ListingStatus | 'ALL'>(
     allStatusesFilter,
   )
@@ -90,46 +94,55 @@ export function ListingsMapPage() {
     return (listings.data ?? []).filter((listing) => listing.status === statusFilter)
   }, [listings.data, statusFilter])
 
+  const applyBrowserLocation = (position: GeolocationPosition) => {
+    setLocation({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      source: 'browser',
+    })
+    setDraftMapCenter({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      source: 'browser',
+    })
+    setDraftRadiusIndex(radiusIndexFromMeters(radiusMeters))
+    setRadiusFitVersion((version) => version + 1)
+  }
+
   useEffect(() => {
     if (!navigator.geolocation || location.source !== 'fallback') {
       return
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          source: 'browser',
-        })
-        setDraftMapCenter({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          source: 'browser',
-        })
-        setDraftRadiusIndex(radiusIndexFromMeters(radiusMeters))
-        setRadiusFitVersion((version) => version + 1)
-      },
+      applyBrowserLocation,
       () => undefined,
       { enableHighAccuracy: true, maximumAge: 300_000, timeout: 8_000 },
     )
-  }, [location.source, setLocation])
+  }, [location.source])
 
   const useBrowserLocation = () => {
-    navigator.geolocation?.getCurrentPosition((position) => {
-      setLocation({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        source: 'browser',
-      })
-      setDraftMapCenter({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        source: 'browser',
-      })
-      setDraftRadiusIndex(radiusIndexFromMeters(radiusMeters))
-      setRadiusFitVersion((version) => version + 1)
-    })
+    if (!navigator.geolocation) {
+      setLocationErrorMessage('Your browser does not support location lookup.')
+      return
+    }
+
+    setIsLocatingUser(true)
+    setLocationErrorMessage(null)
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        applyBrowserLocation(position)
+        setIsLocatingUser(false)
+      },
+      () => {
+        setLocationErrorMessage(
+          'Could not access your location. You can still pan the map manually.',
+        )
+        setIsLocatingUser(false)
+      },
+      { enableHighAccuracy: true, maximumAge: 300_000, timeout: 10_000 },
+    )
   }
 
   const searchDraftArea = () => {
@@ -150,12 +163,17 @@ export function ListingsMapPage() {
         </Stack>
         <Button
           leftSection={<LocateFixed size={16} />}
+          loading={isLocatingUser}
           variant="light"
           onClick={useBrowserLocation}
         >
-          Use my location
+          {isLocatingUser ? 'Finding location' : 'Use my location'}
         </Button>
       </Group>
+
+      {locationErrorMessage ? (
+        <Alert color="yellow">{locationErrorMessage}</Alert>
+      ) : null}
 
       <Grid>
         <Grid.Col span={{ base: 12, md: 8 }}>
