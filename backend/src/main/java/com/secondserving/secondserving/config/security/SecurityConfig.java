@@ -2,6 +2,7 @@ package com.secondserving.secondserving.config.security;
 
 import com.secondserving.secondserving.controller.UserController;
 import com.secondserving.secondserving.controller.AuthController;
+import com.secondserving.secondserving.controller.FoodListingController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers(AuthController.AUTH_BASE_PATH + AuthController.LOGIN_PATH).permitAll()
                 .requestMatchers(AuthController.AUTH_BASE_PATH + AuthController.SIGNUP_PATH).permitAll()
                 .requestMatchers(AuthController.AUTH_BASE_PATH + AuthController.LOGOUT_PATH).permitAll()
+                .requestMatchers(FoodListingController.FOOD_LISTING_BASE_PATH + "/**").permitAll()
                 .requestMatchers(UserController.USER_BASE_PATH + "/**").hasAuthority(ROLE_USER)
                 .anyRequest().authenticated())
 
