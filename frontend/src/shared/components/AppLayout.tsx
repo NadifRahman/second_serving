@@ -6,11 +6,11 @@ import {
   Group,
   NavLink,
   Text,
-  Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { LogIn, LogOut, MapPinned, Plus, UserRound } from 'lucide-react'
 import { NavLink as RouterNavLink, Outlet, useNavigate } from 'react-router-dom'
+import secondServingLogo from '../../assets/Second_Serving_Logo.svg'
 import { routes } from '../../config/routes'
 import { useAuthMutations, useCurrentUser } from '../../features/auth/hooks'
 import { useAuthStore } from '../../stores/authStore'
@@ -65,7 +65,11 @@ export function AppLayout() {
                 onClick={toggle}
               />
               <RouterNavLink to={routes.home}>
-                <Title order={3}>Second Serving</Title>
+                <img
+                  alt="Second Serving"
+                  src={secondServingLogo}
+                  style={{ display: 'block', height: 44, width: 44 }}
+                />
               </RouterNavLink>
             </Group>
 
