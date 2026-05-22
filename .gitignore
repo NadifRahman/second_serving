@@ -25,6 +25,12 @@ target/
 ### Environment ###
 .env.prod
 
+### TLS certificates ###
+certs/*
+!certs/README.md
+!certs/example/
+!certs/example/*.example
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
