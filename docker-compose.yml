@@ -39,5 +39,18 @@ services:
     ports:
       - "127.0.0.1:${APP_PORT:-18080}:${SERVER_PORT:-8080}" # map VPS port to container port, only on localhost for security
 
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: secondserving-nginx
+    depends_on:
+      - app
+    environment:
+      SERVER_PORT: ${SERVER_PORT:-8080} # Port of the spring boot inside docker network
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro # server block template with env vars
+      - ./frontend/dist:/usr/share/nginx/html:ro # serve built frontend assets from vite
+
 volumes:
   db_data:
