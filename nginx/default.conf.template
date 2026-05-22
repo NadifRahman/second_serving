@@ -2,12 +2,26 @@
 limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 
 server {
-    # Nginx listens on port 80 inside its container. Docker will map the host port.
+    # Redirect HTTP to HTTPS.
     listen 80;
 
     # Accept requests for any hostname for now.
     # TODO set this up once we got a hostname
     server_name _;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    # Nginx listens on port 443 inside its container. Docker will map the host port.
+    listen 443 ssl;
+
+    # Accept requests for any hostname for now.
+    # TODO set this up once we got a hostname
+    server_name _;
+
+    ssl_certificate /etc/nginx/certs/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/privkey.pem;
 
     # Serve the built Vite app from the directory mounted by docker-compose.
     root /usr/share/nginx/html;
