@@ -215,8 +215,10 @@ export function ListingsMapPage() {
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 4 }}>
           <Stack>
+            <Text fw={500} size="sm">
+              Radius
+            </Text>
             <Slider
-              label="Radius"
               labelAlwaysOn
               label={(value) => `${radiusKilometersFromIndex(value)} km`}
               marks={radiusPresetMarks}
