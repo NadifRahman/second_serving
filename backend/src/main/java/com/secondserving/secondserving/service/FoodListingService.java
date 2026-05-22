@@ -89,9 +89,32 @@ public class FoodListingService {
             listing.setQuantity(command.quantity());
         }
         if (command.expiresAt() != null) {
+            validatePatchedExpiresAt(listing, command.expiresAt());
             listing.setExpiresAt(command.expiresAt());
         }
         return foodListingRepository.save(listing);
+    }
+
+    /**
+     * Validates a patched expiration value while allowing an unchanged historical value.
+     * <p>
+     * Patch requests often echo the current form value back to the backend. If a
+     * listing has already expired, that echoed value should not block unrelated
+     * edits such as changing quantity or status. A genuinely changed expiration
+     * still must move to the future so owners cannot newly set expired listings.
+     *
+     * @param listing the existing listing being patched
+     * @param patchedExpiresAt the expiration value supplied by the client
+     * @throws IllegalArgumentException if the expiration is changed to a non-future instant
+     */
+    private void validatePatchedExpiresAt(FoodListing listing, Instant patchedExpiresAt) {
+        if (patchedExpiresAt.equals(listing.getExpiresAt())) {
+            return;
+        }
+
+        if (!patchedExpiresAt.isAfter(Instant.now())) {
+            throw new IllegalArgumentException("expiresAt must be a future date when changed.");
+        }
     }
 
     /**

@@ -1,11 +1,21 @@
-import { Button, Group, Select, Stack, TextInput, Title } from '@mantine/core'
-import { Search } from 'lucide-react'
+import {
+  Button,
+  Group,
+  Modal,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
+import { Search, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import type { FoodListing } from '../../api/types'
 import { routes } from '../../config/routes'
 import { EmptyState } from '../../shared/components/EmptyState'
 import { ListingCard } from './components/ListingCard'
-import { useMyListings } from './hooks'
+import { useListingMutations, useMyListings } from './hooks'
 
 const sortOptions = [
   { label: 'Newest', value: 'newest' },
@@ -19,7 +29,11 @@ const sortOptions = [
 export function MyListingsPage() {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<string>('newest')
+  const [listingToDelete, setListingToDelete] = useState<FoodListing | null>(
+    null,
+  )
   const listings = useMyListings()
+  const listingMutations = useListingMutations()
 
   const visibleListings = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -38,8 +52,43 @@ export function MyListingsPage() {
     })
   }, [listings.data, search, sort])
 
+  const deleteSelectedListing = async () => {
+    if (!listingToDelete?.listingId) {
+      return
+    }
+
+    await listingMutations.remove.mutateAsync(listingToDelete.listingId)
+    setListingToDelete(null)
+  }
+
   return (
     <Stack py="md">
+      <Modal
+        centered
+        opened={Boolean(listingToDelete)}
+        title="Delete listing"
+        onClose={() => setListingToDelete(null)}
+      >
+        <Stack>
+          <Text>
+            Delete {listingToDelete?.title ?? 'this listing'}? This cannot be
+            undone.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="subtle" onClick={() => setListingToDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              loading={listingMutations.remove.isPending}
+              onClick={deleteSelectedListing}
+            >
+              Delete
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
       <Group justify="space-between">
         <Title order={1}>My listings</Title>
         <Button component={Link} to={routes.newListing}>
@@ -69,14 +118,25 @@ export function MyListingsPage() {
             <ListingCard
               key={listing.listingId}
               action={
-                <Button
-                  component={Link}
-                  size="xs"
-                  to={routes.editListing(listing.listingId)}
-                  variant="light"
-                >
-                  Edit
-                </Button>
+                <>
+                  <Button
+                    component={Link}
+                    size="xs"
+                    to={routes.editListing(listing.listingId)}
+                    variant="light"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    color="red"
+                    leftSection={<Trash2 size={14} />}
+                    size="xs"
+                    variant="light"
+                    onClick={() => setListingToDelete(listing)}
+                  >
+                    Delete
+                  </Button>
+                </>
               }
               listing={listing}
             />
