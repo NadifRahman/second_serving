@@ -181,6 +181,38 @@ Connect via psql:
 docker exec -it secondserving-db psql -U secondserving
 ```
 
+## Demo Data
+
+Use the demo seed script to populate the current schema with realistic southern
+Ontario users, 150 listings, pickup locations, and reservations:
+
+```shell
+scripts/seed-demo-data.sh
+```
+
+By default, the script targets the local development database using `.env.dev`
+and the Compose `db` service. It starts the local database service if needed.
+
+The seed is idempotent. It uses stable UUIDs and `ON CONFLICT` updates, so
+running it again refreshes the same demo rows instead of creating duplicates.
+
+All seeded demo users use the password:
+
+```txt
+password
+```
+
+To seed an explicit database, such as staging or a production demo instance, use
+a PostgreSQL connection string:
+
+```shell
+scripts/seed-demo-data.sh --database-url "$DATABASE_URL"
+```
+
+Do not seed production data accidentally. Prefer the default local command for
+development and use `--database-url` only when you intentionally want to mutate
+that target database.
+
 ---
 
 ## Indexing Strategy
