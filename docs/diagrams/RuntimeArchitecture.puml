@@ -1,0 +1,43 @@
+@startuml RuntimeArchitecture
+!theme plain
+
+title Second Serving Runtime Architecture
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+actor "Browser" as Browser
+
+node "Nginx\nsecondserving-nginx" as Nginx {
+  artifact "Vite build\nfrontend/dist" as FrontendDist
+}
+
+node "Spring Boot API\nsecondserving-app" as App
+
+database "PostgreSQL + PostGIS\nsecondserving-db" as Db
+
+Browser --> Nginx : HTTPS
+Nginx --> FrontendDist : serve static assets\nand React Router fallback
+Nginx --> App : proxy /api/*
+App --> Db : JDBC\nJPA/Hibernate\nPostGIS queries
+
+note right of Nginx
+  Owns TLS, static files,
+  SPA fallback, API proxying,
+  and basic API rate limiting.
+end note
+
+note right of App
+  Owns auth, authorization,
+  validation, business rules,
+  listings, reservations,
+  and geospatial search.
+end note
+
+note bottom of Db
+  db_data is a named volume
+  for persistent database storage.
+end note
+
+@enduml
